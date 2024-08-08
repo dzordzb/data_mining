@@ -50,6 +50,16 @@ def train_model(data, test_size=0.4):
     
     return model, metamodel
 
+def filter_data(model, metamodel, data):
+    logging.info('Filtering data...')
+    X, y = data
+    X_valid, y_valid = [], []
+    for idx in range(len(X)):
+        if metamodel.predict([X[idx]]) == 1:
+            X_valid.append(X[idx])
+            y_valid.append(y[idx])
+    return X_valid, y_valid
+
 def main():
     data = load_data('politifact_factcheck_data.json')
     print(f'Loaded {len(data)} examples')
@@ -68,6 +78,9 @@ def main():
 
     model, metamodel = train_model((X_train, X_test, y_train, y_test))
     print("Model and metamodel trained successfully")
+
+    X_test_valid, y_test_valid = filter_data(model, metamodel, (X_test, y_test))
+    print(f'Filtered test set size: {len(X_test_valid)}')
 
 if __name__ == '__main__':
     main()
