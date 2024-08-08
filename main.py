@@ -8,8 +8,6 @@ from sentence_transformers import SentenceTransformer
 from sklearn.model_selection import train_test_split
 from imblearn.over_sampling import SMOTE
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.decomposition import PCA
-from sklearn.manifold import TSNE
 
 logging.basicConfig(level=logging.INFO)
 
@@ -102,6 +100,27 @@ def plot_embedding_space(embeddings, labels, filename, method='pca'):
     plt.savefig(filename)
     plt.close()
 
+def plot_class_balance(before_counts, after_counts, filename):
+    labels = list(before_counts.keys())
+    before_values = list(before_counts.values())
+    after_values = list(after_counts.values())
+    
+    x = np.arange(len(labels))
+    width = 0.35
+    fig, ax = plt.subplots(figsize=(10, 6))
+    
+    ax.bar(x - width/2, before_values, width, label='Before SMOTE')
+    ax.bar(x + width/2, after_values, width, label='After SMOTE')
+    ax.set_xlabel('Labels')
+    ax.set_ylabel('Count')
+    ax.set_title('Class Balance Before and After SMOTE')
+    ax.set_xticks(x)
+    ax.set_xticklabels(labels)
+    ax.legend()
+    
+    plt.savefig(filename)
+    plt.close()
+
 def main():
     data = load_data('politifact_factcheck_data.json')
     print(f'Loaded {len(data)} examples')
@@ -136,6 +155,11 @@ def main():
     plot_embedding_space(embeddings, labels, 'embedding_space_pca.png', method='pca')
     plot_embedding_space(embeddings, labels, 'embedding_space_tsne.png', method='tsne')
     print('Embedding space visualizations saved as embedding_space_pca.png and embedding_space_tsne.png')
+
+    before_counts = Counter(y_train)
+    after_counts = Counter(y_train)
+    plot_class_balance(before_counts, after_counts, 'class_balance.png')
+    print('Class balance plot saved as class_balance.png')
 
 if __name__ == '__main__':
     main()
