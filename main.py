@@ -3,6 +3,7 @@ import json
 from pprint import pprint
 from collections import Counter
 import numpy as np
+import matplotlib.pyplot as plt
 from sentence_transformers import SentenceTransformer
 from sklearn.model_selection import train_test_split
 from imblearn.over_sampling import SMOTE
@@ -60,6 +61,16 @@ def filter_data(model, metamodel, data):
             y_valid.append(y[idx])
     return X_valid, y_valid
 
+def plot_label_distribution(labels, filename):
+    label_counts = Counter(labels)
+    plt.figure(figsize=(10, 6))
+    plt.bar(label_counts.keys(), label_counts.values())
+    plt.title('Label Distribution')
+    plt.xlabel('Labels')
+    plt.ylabel('Count')
+    plt.savefig(filename)
+    plt.close()
+
 def main():
     data = load_data('politifact_factcheck_data.json')
     print(f'Loaded {len(data)} examples')
@@ -81,6 +92,9 @@ def main():
 
     X_test_valid, y_test_valid = filter_data(model, metamodel, (X_test, y_test))
     print(f'Filtered test set size: {len(X_test_valid)}')
+
+    plot_label_distribution(labels, 'label_distribution.png')
+    print('Label distribution plot saved as label_distribution.png')
 
 if __name__ == '__main__':
     main()
