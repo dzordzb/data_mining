@@ -8,6 +8,8 @@ from sentence_transformers import SentenceTransformer
 from sklearn.model_selection import train_test_split
 from imblearn.over_sampling import SMOTE
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.decomposition import PCA
+from sklearn.manifold import TSNE
 
 logging.basicConfig(level=logging.INFO)
 
@@ -71,6 +73,35 @@ def plot_label_distribution(labels, filename):
     plt.savefig(filename)
     plt.close()
 
+def plot_sentence_length_distribution(sentences, filename):
+    sentence_lengths = [len(sentence.split()) for sentence in sentences]
+    plt.figure(figsize=(10, 6))
+    plt.hist(sentence_lengths, bins=50)
+    plt.title('Sentence Length Distribution')
+    plt.xlabel('Sentence Length')
+    plt.ylabel('Frequency')
+    plt.savefig(filename)
+    plt.close()
+
+def plot_embedding_space(embeddings, labels, filename, method='pca'):
+    if method == 'pca':
+        reducer = PCA(n_components=2)
+    elif method == 'tsne':
+        reducer = TSNE(n_components=2)
+    
+    reduced_embeddings = reducer.fit_transform(embeddings)
+    
+    label_to_num = {label: idx for idx, label in enumerate(set(labels))}
+    numeric_labels = [label_to_num[label] for label in labels]
+    
+    plt.figure(figsize=(10, 6))
+    scatter = plt.scatter(reduced_embeddings[:, 0], reduced_embeddings[:, 1], c=numeric_labels, cmap='viridis', alpha=0.5)
+    plt.colorbar(scatter, ticks=range(len(label_to_num)), label='Labels')
+    plt.clim(-0.5, len(label_to_num) - 0.5)
+    plt.title(f'Embedding Space Visualization ({method.upper()})')
+    plt.savefig(filename)
+    plt.close()
+
 def main():
     data = load_data('politifact_factcheck_data.json')
     print(f'Loaded {len(data)} examples')
@@ -95,6 +126,16 @@ def main():
 
     plot_label_distribution(labels, 'label_distribution.png')
     print('Label distribution plot saved as label_distribution.png')
+
+    sentences = list(zip(*data))[0]
+    plot_sentence_length_distribution(sentences, 'sentence_length_distribution.png')
+    print('Sentence length distribution plot saved as sentence_length_distribution.png')
+
+    embeddings, _ = zip(*encoded_data)
+    embeddings = np.array(embeddings)
+    plot_embedding_space(embeddings, labels, 'embedding_space_pca.png', method='pca')
+    plot_embedding_space(embeddings, labels, 'embedding_space_tsne.png', method='tsne')
+    print('Embedding space visualizations saved as embedding_space_pca.png and embedding_space_tsne.png')
 
 if __name__ == '__main__':
     main()
