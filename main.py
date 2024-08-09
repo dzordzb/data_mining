@@ -4,10 +4,14 @@ from pprint import pprint
 from collections import Counter
 import numpy as np
 import matplotlib.pyplot as plt
+import seaborn as sns
 from sentence_transformers import SentenceTransformer
 from sklearn.model_selection import train_test_split
 from imblearn.over_sampling import SMOTE
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.decomposition import PCA
+from sklearn.manifold import TSNE
+from sklearn.metrics import pairwise_distances
 
 logging.basicConfig(level=logging.INFO)
 
@@ -121,6 +125,21 @@ def plot_class_balance(before_counts, after_counts, filename):
     plt.savefig(filename)
     plt.close()
 
+def plot_embedding_density(embeddings, filename):
+    plt.figure(figsize=(10, 6))
+    sns.kdeplot(x=embeddings[:, 0], y=embeddings[:, 1], cmap='viridis', shade=True, bw_adjust=.5)
+    plt.title('Embedding Density Plot')
+    plt.savefig(filename)
+    plt.close()
+
+def plot_pairwise_distance_heatmap(embeddings, filename):
+    distances = pairwise_distances(embeddings)
+    plt.figure(figsize=(10, 6))
+    sns.heatmap(distances, cmap='viridis')
+    plt.title('Pairwise Distance Heatmap')
+    plt.savefig(filename)
+    plt.close()
+
 def main():
     data = load_data('politifact_factcheck_data.json')
     print(f'Loaded {len(data)} examples')
@@ -160,6 +179,12 @@ def main():
     after_counts = Counter(y_train)
     plot_class_balance(before_counts, after_counts, 'class_balance.png')
     print('Class balance plot saved as class_balance.png')
+
+    plot_embedding_density(embeddings, 'embedding_density.png')
+    print('Embedding density plot saved as embedding_density.png')
+
+    plot_pairwise_distance_heatmap(embeddings, 'pairwise_distance_heatmap.png')
+    print('Pairwise distance heatmap saved as pairwise_distance_heatmap.png')
 
 if __name__ == '__main__':
     main()
